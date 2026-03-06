@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>IPL Auction</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f6f7fb;
+padding:40px;
+}
+
+.card{
+background:white;
+padding:20px;
+margin:10px;
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+button{
+background:#5a67d8;
+color:white;
+padding:8px 15px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>IPL Auction System</h1>
+
+<div id="players"></div>
+
+<script>
+
+async function loadPlayers(){
+
+let res = await fetch("/players")
+let players = await res.json()
+
+let html = ""
+
+players.forEach(p=>{
+
+html += `
+<div class="card">
+
+<h3>${p.name}</h3>
+<p>Country: ${p.country}</p>
+<p>Role: ${p.role}</p>
+<p>Runs: ${p.runs}</p>
+<p>Wickets: ${p.wickets}</p>
+
+<h2>Price: ₹${p.price}</h2>
+
+<input id="bid${p.id}" placeholder="Enter bid"/>
+
+<button onclick="bid(${p.id})">
+Bid
+</button>
+
+</div>
+`
+})
+
+document.getElementById("players").innerHTML = html
+}
+
+async function bid(id){
+
+let price = document.getElementById("bid"+id).value
+
+await fetch("/bid",{
+
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+player_id:id,
+price:price
+})
+
+})
+
+loadPlayers()
+}
+
+loadPlayers()
+
+</script>
+
+</body>
+</html>
