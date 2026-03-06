@@ -14,7 +14,7 @@ cur = conn.cursor()
 cur.execute("""
 CREATE TABLE IF NOT EXISTS players(
 id SERIAL PRIMARY KEY,
-name TEXT,
+name TEXT UNIQUE,
 country TEXT,
 role TEXT,
 runs INT,
@@ -35,11 +35,24 @@ bid_time TIMESTAMP
 
 conn.commit()
 
+# insert players
+cur.execute("""
+INSERT INTO players(name,country,role,runs,wickets,base_price,current_price)
+VALUES
+('Virat Kohli','India','Batsman',7263,4,20000000,20000000),
+('Rohit Sharma','India','Batsman',6200,15,20000000,20000000),
+('Jasprit Bumrah','India','Bowler',50,145,15000000,15000000),
+('KL Rahul','India','Batsman',4200,0,18000000,18000000),
+('Jos Buttler','England','Batsman',3500,0,15000000,15000000),
+('Rashid Khan','Afghanistan','Bowler',500,130,15000000,15000000)
+ON CONFLICT (name) DO NOTHING;
+""")
+
+conn.commit()
 
 @app.route("/")
 def home():
     return render_template("index.html")
-
 
 @app.route("/players")
 def players():
@@ -62,12 +75,11 @@ def players():
 
     return jsonify(players)
 
-
 @app.route("/bid", methods=["POST"])
 def bid():
 
     player_id = request.json["player_id"]
-    bid_price = request.json["price"]
+    bid_price = int(request.json["price"])
 
     cur.execute(
         "SELECT current_price FROM players WHERE id=%s",
@@ -92,7 +104,6 @@ def bid():
     conn.commit()
 
     return jsonify({"status":"Bid accepted"})
-
 
 if __name__ == "__main__":
     app.run()
